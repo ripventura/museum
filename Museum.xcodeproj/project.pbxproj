@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		18234CCB2F4645DB00C0A12D /* FactoryKit in Frameworks */ = {isa = PBXBuildFile; productRef = 18234CCA2F4645DB00C0A12D /* FactoryKit */; };
+		18234CCD2F4645DB00C0A12D /* FactoryTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 18234CCC2F4645DB00C0A12D /* FactoryTesting */; };
 		189E39012F463C380013FCC3 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 189E39002F463C380013FCC3 /* RealityKitContent */; };
 /* End PBXBuildFile section */
 
@@ -57,6 +59,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				18234CCB2F4645DB00C0A12D /* FactoryKit in Frameworks */,
 				189E39012F463C380013FCC3 /* RealityKitContent in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -65,6 +68,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				18234CCD2F4645DB00C0A12D /* FactoryTesting in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +123,7 @@
 			name = Museum;
 			packageProductDependencies = (
 				189E39002F463C380013FCC3 /* RealityKitContent */,
+				18234CCA2F4645DB00C0A12D /* FactoryKit */,
 			);
 			productName = Museum;
 			productReference = 189E38FB2F463C380013FCC3 /* Museum.app */;
@@ -142,6 +147,7 @@
 			);
 			name = MuseumTests;
 			packageProductDependencies = (
+				18234CCC2F4645DB00C0A12D /* FactoryTesting */,
 			);
 			productName = MuseumTests;
 			productReference = 189E390D2F463C390013FCC3 /* MuseumTests.xctest */;
@@ -175,6 +181,9 @@
 			);
 			mainGroup = 189E38F22F463C380013FCC3;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				18234CC92F4645DB00C0A12D /* XCRemoteSwiftPackageReference "Factory" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 189E38FC2F463C380013FCC3 /* Products */;
 			projectDirPath = "";
@@ -486,7 +495,28 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		18234CC92F4645DB00C0A12D /* XCRemoteSwiftPackageReference "Factory" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/hmlongco/Factory";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		18234CCA2F4645DB00C0A12D /* FactoryKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 18234CC92F4645DB00C0A12D /* XCRemoteSwiftPackageReference "Factory" */;
+			productName = FactoryKit;
+		};
+		18234CCC2F4645DB00C0A12D /* FactoryTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 18234CC92F4645DB00C0A12D /* XCRemoteSwiftPackageReference "Factory" */;
+			productName = FactoryTesting;
+		};
 		189E39002F463C380013FCC3 /* RealityKitContent */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = RealityKitContent;
