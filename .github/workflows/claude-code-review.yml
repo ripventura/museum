@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
       issues: read
       id-token: write
 
@@ -38,7 +38,14 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://code.claude.com/docs/en/cli-reference for available options
+          prompt: |
+            Review style instructions:
+            - Be concise and direct. No filler, no pleasantries, no praise.
+            - Only comment on things that actually need to change: bugs, logic errors, security issues, performance problems, or violations of the project's architecture and conventions defined in CLAUDE.md.
+            - Do NOT comment on minor style preferences, naming opinions, or things that are "fine but could be slightly different".
+            - If there are no meaningful issues, say so in one sentence and move on.
+            - Each comment should state the problem and why it matters in 1-2 sentences max.
+
+            Now run the review:
+            /code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}
 
