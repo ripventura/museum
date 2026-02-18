@@ -1,0 +1,30 @@
+{
+  "configurations" : [
+    {
+      "id" : "2ECA146A-D446-45B5-A29B-B90D553C1FA7",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:Museum.xcodeproj",
+      "identifier" : "189E38FA2F463C380013FCC3",
+      "name" : "Museum"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:Museum.xcodeproj",
+        "identifier" : "189E390C2F463C390013FCC3",
+        "name" : "MuseumTests"
+      }
+    }
+  ],
+  "version" : 1
+}

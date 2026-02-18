@@ -23,6 +23,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		182BCA7D2F464CD100BC4BDD /* Museum.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Museum.xctestplan; sourceTree = "<group>"; };
 		189E38FB2F463C380013FCC3 /* Museum.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Museum.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		189E38FF2F463C380013FCC3 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
 		189E390D2F463C390013FCC3 /* MuseumTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MuseumTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -78,6 +79,7 @@
 		189E38F22F463C380013FCC3 = {
 			isa = PBXGroup;
 			children = (
+				182BCA7D2F464CD100BC4BDD /* Museum.xctestplan */,
 				189E38FD2F463C380013FCC3 /* Museum */,
 				189E38FE2F463C380013FCC3 /* Packages */,
 				189E39102F463C390013FCC3 /* MuseumTests */,
