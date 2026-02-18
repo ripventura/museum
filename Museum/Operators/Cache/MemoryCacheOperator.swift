@@ -5,7 +5,18 @@
 //  Created by Vitor Cesco on 18/02/26.
 //
 
+import FactoryKit
 import Foundation
+
+// MARK: - DI Registration
+
+extension Container {
+    var memoryCacheOperator: Factory<any CacheOperatorProtocol> {
+        self { MemoryCacheOperator(limit: Constants.memoryCacheLimit) }
+    }
+}
+
+// MARK: - Implementation
 
 nonisolated final class MemoryCacheOperator: CacheOperatorProtocol, @unchecked Sendable {
 

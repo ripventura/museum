@@ -5,7 +5,24 @@
 //  Created by Vitor Cesco on 18/02/26.
 //
 
+import FactoryKit
 import Foundation
+
+// MARK: - DI Registration
+
+extension Container {
+    var diskCacheOperator: Factory<any CacheOperatorProtocol> {
+        self {
+            DiskCacheOperator(
+                timeToLive: Constants.diskCacheTimeToLive,
+                cachesURL: Constants.cacheURL,
+                logger: self.logOperator("DiskCacheOperator")
+            )
+        }
+    }
+}
+
+// MARK: - Implementation
 
 nonisolated final class DiskCacheOperator: CacheOperatorProtocol, @unchecked Sendable {
 
