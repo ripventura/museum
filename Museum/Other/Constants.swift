@@ -15,4 +15,5 @@ nonisolated enum Constants {
         for: .cachesDirectory,
         in: .userDomainMask
     ).first!
+    static let assetBaseURL = URL(string: "https://drive.trifork.com/index.php/s/")!
 }
