@@ -38,11 +38,13 @@ The app uses a light MVVM architecture with clearly defined layers (top to botto
 - SwiftUI views with business logic extracted into view models
 - Never cascade multiple `.sheet`, `.alert` or similar modifiers — use a single declaration controlled by a Controller
 - Prefer alternatives to event subscribing modifiers (`.onAppear`, `.task`, `.onChange`) — only use when strictly necessary
+- Should always declare the view models as `@ObservedObject` and leave the lifecycle control to the scope of the Factory registration, such as `.singleton`, `.shared`, `.unique`
 
 ### 2. View Models
 - Synthesizers that compute states from one or more dependencies (engines, managers, controllers)
 - Views react to view model state
 - Typically have a private `setupBindings()` method called during construction to subscribe to Combine publishers
+- Should prioritize the use of `@ObservableObject` instead of `@Observable`
 
 ### 3. Middle Layer
 - **Engines**: Specialized classes performing a single specific task. Do not orchestrate results or process errors. May depend on other engines and/or operators.
@@ -84,3 +86,5 @@ The app uses a light MVVM architecture with clearly defined layers (top to botto
 - Prefer data propagation over publishers
 - All protocols and implementations for middle/low layers
 - Factory container extensions co-located with their resolved types
+- The main target is setup with Swift 6.2's default MainActor isolation
+- The test target doesn't inherit the app target's default MainActor isolation, so tests accessing main-actor-isolated ViewModel members need the explicit annotation

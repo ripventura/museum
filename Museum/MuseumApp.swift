@@ -6,12 +6,56 @@
 //
 
 import SwiftUI
+import FactoryKit
 
 @main
 struct MuseumApp: App {
+    @ObservedObject private var viewModel = Container.shared.museumAppViewModel()
+    private let isRunningTests: Bool
+
+    init() {
+        isRunningTests = NSClassFromString("XCTestProbe") != nil
+
+        if !isRunningTests {
+            viewModel.startLoading()
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            switch viewModel.loadingState {
+            case .loading:
+                loadingContent
+            case .loaded:
+                ContentView()
+            case .failed:
+                failureContent
+            }
+        }
+    }
+}
+
+// MARK: - Private
+
+private extension MuseumApp {
+
+    var loadingContent: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+            Text("Loading…")
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    var failureContent: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.largeTitle)
+                .foregroundStyle(.red)
+            Text("Something went wrong")
+            Button("Try Again") {
+                viewModel.retry()
+            }
         }
     }
 }

@@ -16,7 +16,7 @@ nonisolated struct RetryStrategy: Sendable, Equatable {
 
 // MARK: - Internal
 
-extension RetryStrategy {
+nonisolated extension RetryStrategy {
 
     func delay(forAttempt attempt: Int) -> Duration {
         let factor = Double(1 << min(attempt, 62))
