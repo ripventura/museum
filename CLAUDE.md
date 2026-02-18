@@ -59,7 +59,7 @@ The app uses a light MVVM architecture with clearly defined layers (top to botto
 ### Key Principles
 - **Protocol Oriented Programming**: All middle to low level classes must sit behind a protocol
 - **Dependency Injection**: Uses [Factory](https://github.com/hmlongco/Factory) library
-- DI extensions must be declared in the same file as the class they resolve — not in generic "DI" files
+- DI extensions must be declared at the top of the same file as the class they resolve — not in generic "DI" files
 - **Modern async/await** over Combine publishers where available
 - **Data propagation** preferred over Combine publishers
 - Only public/internal methods on the class body; private methods go in private extensions in the same file
