@@ -198,6 +198,50 @@ struct AssetProviderManagerTests {
         #expect(mockCache.savedEntries.isEmpty)
     }
 
+    // MARK: - Progress Callback
+
+    @Test("Progress callback is invoked during download")
+    func progressCallbackInvoked() async throws {
+        let data = Data("progress-test".utf8)
+        mockDownloader.results = [.success(data)]
+
+        let sut = makeSUT()
+        var receivedProgress: [Float] = []
+
+        _ = try await sut.provide(.warship, strategy: defaultStrategy) { fraction in
+            receivedProgress.append(fraction)
+        }
+
+        #expect(!receivedProgress.isEmpty)
+        #expect(receivedProgress.contains(0.5))
+    }
+
+    @Test("Nil progress callback does not crash")
+    func nilProgressCallbackDoesNotCrash() async throws {
+        let data = Data("nil-progress".utf8)
+        mockDownloader.results = [.success(data)]
+
+        let sut = makeSUT()
+        let result = try await sut.provide(.warship, strategy: defaultStrategy, onProgress: nil)
+
+        #expect(result == data)
+    }
+
+    @Test("Progress callback not invoked on cache hit")
+    func progressNotInvokedOnCacheHit() async throws {
+        let data = Data("cached".utf8)
+        await mockCache.save(data, for: Asset.warship)
+
+        let sut = makeSUT()
+        var progressCalled = false
+
+        _ = try await sut.provide(.warship, strategy: defaultStrategy) { _ in
+            progressCalled = true
+        }
+
+        #expect(!progressCalled)
+    }
+
     // MARK: - Asset URL
 
     @Test("Asset URL is passed to downloader")

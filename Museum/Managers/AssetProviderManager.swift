@@ -20,7 +20,17 @@ extension Container {
 // MARK: - Protocol
 
 nonisolated protocol AssetProviding: Sendable {
-    func provide(_ asset: Asset, strategy: RetryStrategy) async throws -> Data
+    func provide(
+        _ asset: Asset,
+        strategy: RetryStrategy,
+        onProgress: (@Sendable (Float) -> Void)?
+    ) async throws -> Data
+}
+
+extension AssetProviding {
+    func provide(_ asset: Asset, strategy: RetryStrategy) async throws -> Data {
+        try await provide(asset, strategy: strategy, onProgress: nil)
+    }
 }
 
 // MARK: - Error
@@ -48,7 +58,11 @@ nonisolated final class AssetProviderManager: AssetProviding, @unchecked Sendabl
         self.logger = logger
     }
 
-    func provide(_ asset: Asset, strategy: RetryStrategy) async throws -> Data {
+    func provide(
+        _ asset: Asset,
+        strategy: RetryStrategy,
+        onProgress: (@Sendable (Float) -> Void)?
+    ) async throws -> Data {
         logger.debug("Provide requested for asset '\(asset.rawValue)'")
 
         if let cached = await cacheEngine.retrieve(at: asset) {
@@ -58,7 +72,7 @@ nonisolated final class AssetProviderManager: AssetProviding, @unchecked Sendabl
 
         logger.info("Cache miss for asset '\(asset.rawValue)', starting download")
 
-        let data = try await downloadWithRetry(asset: asset, strategy: strategy)
+        let data = try await downloadWithRetry(asset: asset, strategy: strategy, onProgress: onProgress)
 
         await cacheEngine.save(data, for: asset)
         logger.debug("Cached asset '\(asset.rawValue)'")
@@ -71,7 +85,11 @@ nonisolated final class AssetProviderManager: AssetProviding, @unchecked Sendabl
 
 private extension AssetProviderManager {
 
-    func downloadWithRetry(asset: Asset, strategy: RetryStrategy) async throws -> Data {
+    func downloadWithRetry(
+        asset: Asset,
+        strategy: RetryStrategy,
+        onProgress: (@Sendable (Float) -> Void)?
+    ) async throws -> Data {
         var lastError: Error?
 
         for attempt in 0...strategy.maxAttempts {
@@ -86,7 +104,7 @@ private extension AssetProviderManager {
             }
 
             do {
-                let data = try await performDownload(asset: asset)
+                let data = try await performDownload(asset: asset, onProgress: onProgress)
                 logger.info("Download succeeded for asset '\(asset.rawValue)' on attempt \(attempt + 1)")
                 return data
             } catch is CancellationError {
@@ -102,7 +120,7 @@ private extension AssetProviderManager {
         throw AssetProviderError.downloadFailed(lastError?.localizedDescription ?? "Unknown error")
     }
 
-    func performDownload(asset: Asset) async throws -> Data {
+    func performDownload(asset: Asset, onProgress: (@Sendable (Float) -> Void)?) async throws -> Data {
         let url = url(for: asset)
         let stream = downloader.download(from: url)
 
@@ -112,6 +130,7 @@ private extension AssetProviderManager {
             switch event {
             case .progress(let fraction):
                 logger.debug("Download progress for '\(asset.rawValue)': \(Int(fraction * 100))%")
+                onProgress?(fraction)
             case .completed(let url):
                 fileURL = url
             }
@@ -131,6 +150,8 @@ private extension AssetProviderManager {
     }
 
     func url(for asset: Asset) -> URL {
-        Constants.assetBaseURL.appendingPathComponent(asset.rawValue)
+        Constants.assetBaseURL
+            .appendingPathComponent(asset.rawValue)
+            .appendingPathComponent("/download")
     }
 }
