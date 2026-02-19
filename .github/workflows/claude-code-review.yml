@@ -38,7 +38,20 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
-          allowed_tools: "Bash(gh *),Skill(code-review:*),Read,Glob,Grep,WebFetch"
+          settings: |
+            {
+              "permissions": {
+                "allow": [
+                  "Bash(gh *)",
+                  "Skill(code-review:*)",
+                  "Task",
+                  "Read",
+                  "Glob",
+                  "Grep",
+                  "WebFetch"
+                ]
+              }
+            }
           prompt: |
             Review style instructions:
             - Be concise and direct. No filler, no pleasantries, no praise.
