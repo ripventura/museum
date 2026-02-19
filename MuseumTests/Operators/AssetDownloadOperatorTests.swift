@@ -49,6 +49,50 @@ struct AssetDownloadOperatorTests {
         try? FileManager.default.removeItem(at: fileURL)
     }
 
+    // MARK: Progress Events
+
+    @Test("Download emits progress events from delegate callbacks")
+    func progressEvents() async throws {
+        let sourceFile = FileManager.default.temporaryDirectory
+            .appendingPathComponent("progress-\(UUID().uuidString).usdz")
+        FileManager.default.createFile(atPath: sourceFile.path(), contents: Data("test".utf8))
+        defer { try? FileManager.default.removeItem(at: sourceFile) }
+
+        let response = HTTPURLResponse(
+            url: URL(string: "https://example.com/asset.usdz")!,
+            statusCode: 200,
+            httpVersion: nil,
+            headerFields: nil
+        )!
+        mockSession.result = .success((sourceFile, response))
+
+        mockSession.onDownloadCalled = { _, onProgress in
+            onProgress?(0.5)
+            onProgress?(1.0)
+        }
+
+        let sut = AssetDownloadOperator(session: mockSession)
+        let stream = sut.download(from: URL(string: "https://example.com/asset.usdz")!)
+
+        var progressValues: [Float] = []
+        var completedURL: URL?
+        for try await event in stream {
+            switch event {
+            case .progress(let fraction):
+                progressValues.append(fraction)
+            case .completed(let url):
+                completedURL = url
+            }
+        }
+
+        #expect(progressValues == [0.5, 1.0])
+        #expect(completedURL != nil)
+
+        if let completedURL {
+            try? FileManager.default.removeItem(at: completedURL)
+        }
+    }
+
     // MARK: File Extension Preserved
 
     @Test("Downloaded file preserves the original URL's file extension")

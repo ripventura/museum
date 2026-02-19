@@ -33,11 +33,9 @@ nonisolated enum AssetDownloadError: Error, Sendable, Equatable {
 nonisolated protocol URLSessionDownloading: Sendable {
     func download(
         from url: URL,
-        delegate: (any URLSessionTaskDelegate)?
+        onProgress: (@Sendable (Float) -> Void)?
     ) async throws -> (URL, URLResponse)
 }
-
-extension URLSession: URLSessionDownloading {}
 
 // MARK: - AssetDownloading Protocol
 
@@ -60,7 +58,7 @@ nonisolated final class AssetDownloadOperator: AssetDownloading, @unchecked Send
     private let session: any URLSessionDownloading
     private let fileManager: FileManager
 
-    init(session: any URLSessionDownloading, fileManager: FileManager = .default) {
+    init(session: any URLSessionDownloading = URLSessionDownloader(), fileManager: FileManager = .default) {
         self.session = session
         self.fileManager = fileManager
     }
@@ -90,7 +88,7 @@ nonisolated final class AssetDownloadOperator: AssetDownloading, @unchecked Send
 
 extension Container {
     var assetDownloadOperator: Factory<any AssetDownloading> {
-        self { AssetDownloadOperator(session: URLSession.shared) }
+        self { AssetDownloadOperator() }
     }
 }
 
@@ -102,14 +100,9 @@ private extension AssetDownloadOperator {
         from url: URL,
         continuation: AsyncThrowingStream<AssetDownloadEvent, Error>.Continuation
     ) async throws -> URL {
-        let progressDelegate = DownloadProgressDelegate { fraction in
+        let (tempURL, response) = try await session.download(from: url) { fraction in
             continuation.yield(.progress(fraction))
         }
-
-        let (tempURL, response) = try await session.download(
-            from: url,
-            delegate: progressDelegate
-        )
 
         try validate(response)
 
@@ -138,34 +131,5 @@ private extension AssetDownloadOperator {
         }
 
         return stableURL
-    }
-
-    final class DownloadProgressDelegate: NSObject, URLSessionDownloadDelegate, Sendable {
-
-        private let onProgress: @Sendable (Float) -> Void
-
-        init(onProgress: @escaping @Sendable (Float) -> Void) {
-            self.onProgress = onProgress
-        }
-
-        nonisolated func urlSession(
-            _ session: URLSession,
-            downloadTask: URLSessionDownloadTask,
-            didWriteData bytesWritten: Int64,
-            totalBytesWritten: Int64,
-            totalBytesExpectedToWrite: Int64
-        ) {
-            guard totalBytesExpectedToWrite > 0 else { return }
-            let fraction = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)
-            onProgress(min(max(fraction, 0.0), 1.0))
-        }
-
-        nonisolated func urlSession(
-            _ session: URLSession,
-            downloadTask: URLSessionDownloadTask,
-            didFinishDownloadingTo location: URL
-        ) {
-            // No-op: the async download(from:delegate:) API handles completion.
-        }
     }
 }
