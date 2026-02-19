@@ -23,8 +23,10 @@ struct AssetDetailView: View {
             if immersiveSpaceController.phase != .open {
                 Model3D(url: url) {
                     if let model = $0.model {
-                        model.resizable()
+                        model
+                            .resizable()
                             .scaledToFit()
+                            .offset(z: 400)
                             .onAppear { hasLoadedModel = true }
                     } else if let error = $0.error {
                         ContentUnavailableView(
