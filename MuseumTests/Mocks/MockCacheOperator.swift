@@ -10,15 +10,15 @@ import Foundation
 
 final class MockCacheOperator: CacheOperatorProtocol, @unchecked Sendable {
 
-    private(set) var savedEntries: [(key: String, data: Data)] = []
-    private var storage: [String: Data] = [:]
+    private(set) var savedEntries: [(key: String, url: URL)] = []
+    private var storage: [String: URL] = [:]
 
-    func save(_ data: Data, for key: any CacheKeyProtocol) async {
-        savedEntries.append((key: key.value, data: data))
-        storage[key.value] = data
+    func save(_ sourceURL: URL, for key: any CacheKeyProtocol) async {
+        savedEntries.append((key: key.value, url: sourceURL))
+        storage[key.value] = sourceURL
     }
 
-    func retrieve(at key: any CacheKeyProtocol) async -> Data? {
+    func retrieve(at key: any CacheKeyProtocol) async -> URL? {
         storage[key.value]
     }
 }
