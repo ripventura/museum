@@ -23,19 +23,19 @@ struct AssetProviderManagerTests {
 
     // MARK: - Cache
 
-    @Test("Returns cached data without downloading")
+    @Test("Returns cached URL without downloading")
     func cacheHitReturnsImmediately() async throws {
-        let data = Data("cached".utf8)
-        await mockCache.save(data, for: Asset.warship)
+        let cachedURL = makeTempFile()
+        await mockCache.save(cachedURL, for: Asset.warship)
 
         let sut = makeSUT()
         let result = try await sut.provide(.warship, strategy: defaultStrategy)
 
-        #expect(result == data)
+        #expect(result == cachedURL)
         #expect(mockDownloader.downloadCallCount == 0)
     }
 
-    @Test("Cache miss downloads and caches the data")
+    @Test("Cache miss downloads and caches the file")
     func cacheMissDownloadsAndCaches() async throws {
         let data = Data("downloaded".utf8)
         mockDownloader.results = [.success(data)]
@@ -43,11 +43,10 @@ struct AssetProviderManagerTests {
         let sut = makeSUT()
         let result = try await sut.provide(.warship, strategy: defaultStrategy)
 
-        #expect(result == data)
+        #expect(FileManager.default.fileExists(atPath: result.path()))
         #expect(mockDownloader.downloadCallCount == 1)
         #expect(mockCache.savedEntries.count == 1)
         #expect(mockCache.savedEntries.first?.key == Asset.warship.value)
-        #expect(mockCache.savedEntries.first?.data == data)
     }
 
     // MARK: - No Retry
@@ -83,7 +82,7 @@ struct AssetProviderManagerTests {
         let sut = makeSUT()
         let result = try await sut.provide(.warship, strategy: defaultStrategy)
 
-        #expect(result == data)
+        #expect(FileManager.default.fileExists(atPath: result.path()))
         #expect(mockDownloader.downloadCallCount == 2)
         #expect(mockCache.savedEntries.count == 1)
     }
@@ -118,7 +117,7 @@ struct AssetProviderManagerTests {
         let sut = makeSUT()
         let result = try await sut.provide(.warship, strategy: defaultStrategy)
 
-        #expect(result == data)
+        #expect(FileManager.default.fileExists(atPath: result.path()))
         #expect(mockDownloader.downloadCallCount == 3)
     }
 
@@ -177,27 +176,6 @@ struct AssetProviderManagerTests {
         #expect(mockCache.savedEntries.isEmpty)
     }
 
-    // MARK: - File Read Failure
-
-    @Test("File read failure throws error")
-    func fileReadFailedThrows() async {
-        mockDownloader.results = [.success(Data("valid".utf8))]
-        mockDownloader.overrideCompletedURL = URL(filePath: "/nonexistent-\(UUID().uuidString)")
-
-        let strategy = RetryStrategy(
-            maxAttempts: 0,
-            initialDelay: .milliseconds(1),
-            maxDelay: .milliseconds(1)
-        )
-
-        let sut = makeSUT()
-
-        await #expect(throws: AssetProviderError.self) {
-            try await sut.provide(.warship, strategy: strategy)
-        }
-        #expect(mockCache.savedEntries.isEmpty)
-    }
-
     // MARK: - Progress Callback
 
     @Test("Progress callback is invoked during download")
@@ -224,13 +202,13 @@ struct AssetProviderManagerTests {
         let sut = makeSUT()
         let result = try await sut.provide(.warship, strategy: defaultStrategy, onProgress: nil)
 
-        #expect(result == data)
+        #expect(FileManager.default.fileExists(atPath: result.path()))
     }
 
     @Test("Progress callback not invoked on cache hit")
     func progressNotInvokedOnCacheHit() async throws {
-        let data = Data("cached".utf8)
-        await mockCache.save(data, for: Asset.warship)
+        let cachedURL = makeTempFile()
+        await mockCache.save(cachedURL, for: Asset.warship)
 
         let sut = makeSUT()
         var progressCalled = false
@@ -252,7 +230,9 @@ struct AssetProviderManagerTests {
         let sut = makeSUT()
         _ = try await sut.provide(.warship, strategy: defaultStrategy)
 
-        let expectedURL = Constants.assetBaseURL.appendingPathComponent(Asset.warship.rawValue)
+        let expectedURL = Constants.assetBaseURL
+            .appendingPathComponent(Asset.warship.rawValue)
+            .appendingPathComponent("/download")
         #expect(mockDownloader.lastRequestedURL == expectedURL)
     }
 }
@@ -263,9 +243,16 @@ private extension AssetProviderManagerTests {
 
     func makeSUT() -> AssetProviderManager {
         AssetProviderManager(
-            cacheEngine: mockCache,
+            diskCache: mockCache,
             downloader: mockDownloader,
             logger: mockLogger
         )
+    }
+
+    func makeTempFile(contents: Data = Data("temp".utf8)) -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        FileManager.default.createFile(atPath: url.path(), contents: contents)
+        return url
     }
 }

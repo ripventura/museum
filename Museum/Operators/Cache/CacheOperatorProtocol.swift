@@ -16,8 +16,8 @@ nonisolated protocol CacheKeyProtocol: Sendable {
 // MARK: - Cache Operator Protocol
 
 nonisolated protocol CacheOperatorProtocol: Sendable {
-    /// Saves data to the cache associated with the given key.
-    func save(_ data: Data, for key: any CacheKeyProtocol) async
-    /// Retrieves cached data for the given key, or nil if not found or expired.
-    func retrieve(at key: any CacheKeyProtocol) async -> Data?
+    /// Moves the file at `sourceURL` into the cache associated with the given key.
+    func save(_ sourceURL: URL, for key: any CacheKeyProtocol) async
+    /// Returns the cached file URL for the given key, or nil if not found or expired.
+    func retrieve(at key: any CacheKeyProtocol) async -> URL?
 }

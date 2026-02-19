@@ -24,11 +24,11 @@ nonisolated protocol AssetProviding: Sendable {
         _ asset: Asset,
         strategy: RetryStrategy,
         onProgress: (@Sendable (Float) -> Void)?
-    ) async throws -> Data
+    ) async throws -> URL
 }
 
 extension AssetProviding {
-    func provide(_ asset: Asset, strategy: RetryStrategy) async throws -> Data {
+    func provide(_ asset: Asset, strategy: RetryStrategy) async throws -> URL {
         try await provide(asset, strategy: strategy, onProgress: nil)
     }
 }
@@ -37,23 +37,22 @@ extension AssetProviding {
 
 nonisolated enum AssetProviderError: Error, Sendable, Equatable {
     case downloadFailed(String)
-    case fileReadFailed(String)
 }
 
 // MARK: - Implementation
 
 nonisolated final class AssetProviderManager: AssetProviding, @unchecked Sendable {
 
-    private let cacheEngine: any CacheOperatorProtocol
+    private let diskCache: any CacheOperatorProtocol
     private let downloader: any AssetDownloading
     private let logger: any Logging
 
     init(
-        cacheEngine: any CacheOperatorProtocol = Container.shared.cacheEngine(),
+        diskCache: any CacheOperatorProtocol = Container.shared.diskCacheOperator(),
         downloader: any AssetDownloading = Container.shared.assetDownloadOperator(),
         logger: any Logging = Container.shared.logOperator("AssetProviderManager")
     ) {
-        self.cacheEngine = cacheEngine
+        self.diskCache = diskCache
         self.downloader = downloader
         self.logger = logger
     }
@@ -62,22 +61,26 @@ nonisolated final class AssetProviderManager: AssetProviding, @unchecked Sendabl
         _ asset: Asset,
         strategy: RetryStrategy,
         onProgress: (@Sendable (Float) -> Void)?
-    ) async throws -> Data {
+    ) async throws -> URL {
         logger.debug("Provide requested for asset '\(asset.rawValue)'")
 
-        if let cached = await cacheEngine.retrieve(at: asset) {
+        if let cachedURL = await diskCache.retrieve(at: asset) {
             logger.info("Cache hit for asset '\(asset.rawValue)'")
-            return cached
+            return cachedURL
         }
 
         logger.info("Cache miss for asset '\(asset.rawValue)', starting download")
 
-        let data = try await downloadWithRetry(asset: asset, strategy: strategy, onProgress: onProgress)
+        let tempURL = try await downloadWithRetry(asset: asset, strategy: strategy, onProgress: onProgress)
 
-        await cacheEngine.save(data, for: asset)
+        await diskCache.save(tempURL, for: asset)
         logger.debug("Cached asset '\(asset.rawValue)'")
 
-        return data
+        guard let stableURL = await diskCache.retrieve(at: asset) else {
+            throw AssetProviderError.downloadFailed("File was not found in cache after save")
+        }
+
+        return stableURL
     }
 }
 
@@ -89,7 +92,7 @@ private extension AssetProviderManager {
         asset: Asset,
         strategy: RetryStrategy,
         onProgress: (@Sendable (Float) -> Void)?
-    ) async throws -> Data {
+    ) async throws -> URL {
         var lastError: Error?
 
         for attempt in 0...strategy.maxAttempts {
@@ -104,9 +107,9 @@ private extension AssetProviderManager {
             }
 
             do {
-                let data = try await performDownload(asset: asset, onProgress: onProgress)
+                let tempURL = try await performDownload(asset: asset, onProgress: onProgress)
                 logger.info("Download succeeded for asset '\(asset.rawValue)' on attempt \(attempt + 1)")
-                return data
+                return tempURL
             } catch is CancellationError {
                 logger.warning("Download cancelled for asset '\(asset.rawValue)'")
                 throw CancellationError()
@@ -120,7 +123,7 @@ private extension AssetProviderManager {
         throw AssetProviderError.downloadFailed(lastError?.localizedDescription ?? "Unknown error")
     }
 
-    func performDownload(asset: Asset, onProgress: (@Sendable (Float) -> Void)?) async throws -> Data {
+    func performDownload(asset: Asset, onProgress: (@Sendable (Float) -> Void)?) async throws -> URL {
         let url = url(for: asset)
         let stream = downloader.download(from: url)
 
@@ -140,13 +143,7 @@ private extension AssetProviderManager {
             throw AssetProviderError.downloadFailed("Stream completed without a file URL")
         }
 
-        do {
-            let data = try Data(contentsOf: fileURL)
-            try? FileManager.default.removeItem(at: fileURL)
-            return data
-        } catch {
-            throw AssetProviderError.fileReadFailed(error.localizedDescription)
-        }
+        return fileURL
     }
 
     func url(for asset: Asset) -> URL {
