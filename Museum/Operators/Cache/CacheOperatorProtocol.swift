@@ -11,6 +11,11 @@ import Foundation
 
 nonisolated protocol CacheKeyProtocol: Sendable {
     var value: String { get }
+    var fileExtension: String? { get }
+}
+
+extension CacheKeyProtocol {
+    var fileExtension: String? { nil }
 }
 
 // MARK: - Cache Operator Protocol

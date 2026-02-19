@@ -80,7 +80,9 @@ nonisolated final class DiskCacheOperator: CacheOperatorProtocol, @unchecked Sen
 private extension DiskCacheOperator {
 
     func fileURL(for key: any CacheKeyProtocol) -> URL {
-        cacheDirectory.appendingPathComponent(key.value)
+        let base = cacheDirectory.appendingPathComponent(key.value)
+        guard let ext = key.fileExtension else { return base }
+        return base.appendingPathExtension(ext)
     }
 
     func setup() {

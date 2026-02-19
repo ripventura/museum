@@ -14,4 +14,9 @@ struct AssetTests {
     func assetCacheKey() {
         #expect(Asset.warship.value == "KM1PUvbAai5kXm8")
     }
+
+    @Test("Asset file extension is usdz")
+    func assetFileExtension() {
+        #expect(Asset.warship.fileExtension == "usdz")
+    }
 }
