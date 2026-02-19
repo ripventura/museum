@@ -48,16 +48,20 @@ nonisolated final class DiskCacheOperator: CacheOperatorProtocol, @unchecked Sen
         clearExpired()
     }
 
-    func save(_ data: Data, for key: any CacheKeyProtocol) async {
+    func save(_ sourceURL: URL, for key: any CacheKeyProtocol) async {
+        let destination = fileURL(for: key)
         do {
-            try data.write(to: fileURL(for: key))
+            if fileManager.fileExists(atPath: destination.path) {
+                try fileManager.removeItem(at: destination)
+            }
+            try fileManager.moveItem(at: sourceURL, to: destination)
         } catch {
             assertionFailure("\(error)")
             logger.error("Failed to save cache on disk: \(error), key: \(key.value)")
         }
     }
 
-    func retrieve(at key: any CacheKeyProtocol) async -> Data? {
+    func retrieve(at key: any CacheKeyProtocol) async -> URL? {
         let url = fileURL(for: key)
 
         guard fileManager.fileExists(atPath: url.path) else { return nil }
@@ -67,7 +71,7 @@ nonisolated final class DiskCacheOperator: CacheOperatorProtocol, @unchecked Sen
             return nil
         }
 
-        return try? Data(contentsOf: url)
+        return url
     }
 }
 
