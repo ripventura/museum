@@ -37,7 +37,7 @@ struct AssetDetailView: View {
             }
         }
         .ornament(attachmentAnchor: .scene(.bottomFront)) {
-            if hasLoadedModel {
+            if hasLoadedModel && immersiveSpaceController.phase == .closed {
                 Button("View Immersive") {
                     openImmersive()
                 }
