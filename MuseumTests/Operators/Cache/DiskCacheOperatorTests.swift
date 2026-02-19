@@ -13,6 +13,11 @@ private struct TestCacheKey: CacheKeyProtocol {
     let value: String
 }
 
+private struct TestCacheKeyWithExtension: CacheKeyProtocol {
+    let value: String
+    let fileExtension: String?
+}
+
 struct DiskCacheOperatorTests {
 
     private let testDirectory: URL
@@ -102,6 +107,37 @@ struct DiskCacheOperatorTests {
 
         let cacheOperatorDir = nestedDir.appendingPathComponent("CacheOperator")
         #expect(FileManager.default.fileExists(atPath: cacheOperatorDir.path))
+    }
+
+    // MARK: File Extension
+
+    @Test("Saves and retrieves file with extension when key provides one")
+    func saveAndRetrieveWithFileExtension() async throws {
+        let sut = DiskCacheOperator(timeToLive: 3600, cachesURL: testDirectory, logger: mockLogger)
+        let key = TestCacheKeyWithExtension(value: "model-key", fileExtension: "usdz")
+
+        let sourceURL = makeTempFile(contents: Data("3d-model".utf8))
+        await sut.save(sourceURL, for: key)
+
+        let retrieved = await sut.retrieve(at: key)
+        let retrievedURL = try #require(retrieved)
+        #expect(retrievedURL.pathExtension == "usdz")
+
+        let contents = try Data(contentsOf: retrievedURL)
+        #expect(contents == Data("3d-model".utf8))
+    }
+
+    @Test("Key without file extension stores file without extension")
+    func saveWithoutFileExtension() async throws {
+        let sut = DiskCacheOperator(timeToLive: 3600, cachesURL: testDirectory, logger: mockLogger)
+        let key = TestCacheKeyWithExtension(value: "plain-key", fileExtension: nil)
+
+        let sourceURL = makeTempFile(contents: Data("plain".utf8))
+        await sut.save(sourceURL, for: key)
+
+        let retrieved = await sut.retrieve(at: key)
+        let retrievedURL = try #require(retrieved)
+        #expect(retrievedURL.pathExtension == "")
     }
 
     // MARK: Expiration
