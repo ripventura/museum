@@ -11,6 +11,7 @@ import FactoryKit
 @main
 struct MuseumApp: App {
     @ObservedObject private var viewModel = Container.shared.museumAppViewModel()
+    @ObservedObject private var immersiveSpaceController = Container.shared.immersiveSpaceController()
     private let isRunningTests: Bool
 
     init() {
@@ -33,7 +34,12 @@ struct MuseumApp: App {
             }
         }
         .windowStyle(.volumetric)
-        .defaultSize(width: 0.6, height: 0.4, depth: 0.6, in: .meters)
+        .defaultSize(width: 1, height: 1, depth: 0.5, in: .meters)
+
+        ImmersiveSpace(id: Constants.immersiveSpaceId) {
+            ImmersiveAssetView()
+        }
+        .immersionStyle(selection: .constant(.full), in: .full)
     }
 }
 
