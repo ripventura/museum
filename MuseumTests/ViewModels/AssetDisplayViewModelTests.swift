@@ -154,6 +154,14 @@ struct AssetDisplayViewModelTests {
         #expect(url == expectedURL)
     }
 
+    // MARK: - Asset
+
+    @Test("Asset defaults to warship")
+    func assetDefaultsToWarship() {
+        let sut = makeSUT()
+        #expect(sut.asset == .warship)
+    }
+
     // MARK: - Provider Interaction
 
     @Test("Provider is called with warship asset")

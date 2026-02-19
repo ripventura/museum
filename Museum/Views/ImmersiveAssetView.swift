@@ -20,9 +20,20 @@ struct ImmersiveAssetView: View {
             if case .loaded(let url) = viewModel.state {
                 RealityView { content, attachments in
                     do {
+                        let asset = viewModel.asset
                         let entity = try await ModelEntity(contentsOf: url)
-                        entity.orientation = simd_quatf(angle: .pi / 2, axis: SIMD3<Float>(0, 1, 0))
-                        entity.position = SIMD3<Float>(-10, -5, -15)
+
+                        if let euler = asset.orientation {
+                            let qx = simd_quatf(angle: euler.x, axis: SIMD3<Float>(1, 0, 0))
+                            let qy = simd_quatf(angle: euler.y, axis: SIMD3<Float>(0, 1, 0))
+                            let qz = simd_quatf(angle: euler.z, axis: SIMD3<Float>(0, 0, 1))
+                            entity.orientation = qy * qx * qz
+                        }
+
+                        if let position = asset.position {
+                            entity.position = position
+                        }
+
                         content.add(entity)
                     } catch {
                         // Entity load failure is non-fatal;
