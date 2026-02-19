@@ -39,6 +39,7 @@ jobs:
           show_full_output: true
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
+          allowed_bots: "Bot"
           settings: |
             {
               "permissions": {
