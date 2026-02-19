@@ -68,9 +68,9 @@ private extension AssetDetailView {
             case .userCancelled:
                 immersiveSpaceController.phase = .closed
             case .error:
-                immersiveSpaceController.phase = .error
+                immersiveSpaceController.phase = .closed
             @unknown default:
-                immersiveSpaceController.phase = .error
+                immersiveSpaceController.phase = .closed
             }
         }
     }
