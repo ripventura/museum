@@ -26,7 +26,7 @@ struct MuseumApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: Constants.volumetricSpaceId) {
             switch viewModel.loadingState {
             case .loading:
                 loadingContent

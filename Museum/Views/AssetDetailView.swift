@@ -18,6 +18,7 @@ struct AssetDetailView: View {
     @ObservedObject private var immersiveSpaceController = Container.shared.immersiveSpaceController()
 
     @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    @Environment(\.dismissWindow) private var dismissWindow
 
     @State private var hasLoadedModel = false
 
@@ -81,6 +82,7 @@ private extension AssetDetailView {
             switch result {
             case .opened:
                 immersiveSpaceController.phase = .open
+                dismissWindow(id: Constants.volumetricSpaceId)
             case .userCancelled:
                 immersiveSpaceController.phase = .closed
             case .error:

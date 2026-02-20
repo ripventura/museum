@@ -25,6 +25,7 @@ struct ImmersiveAssetView: View {
     }
 
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Group {
@@ -92,6 +93,7 @@ private extension ImmersiveAssetView {
         Task {
             await dismissImmersiveSpace()
             immersiveSpaceController.phase = .closed
+            openWindow(id: Constants.volumetricSpaceId)
         }
     }
 
