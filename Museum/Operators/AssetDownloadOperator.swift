@@ -73,7 +73,9 @@ nonisolated final class AssetDownloadOperator: AssetDownloading, @unchecked Send
         logger.debug("Downloading asset from \(url)")
         return AsyncThrowingStream { continuation in
             let task = Task { [weak self] in
-                guard let self else { return }
+                guard let self else {
+                    return continuation.finish(throwing: CancellationError())
+                }
                 do {
                     let fileURL = try await self.performDownload(
                         from: url,
