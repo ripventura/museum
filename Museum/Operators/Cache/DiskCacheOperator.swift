@@ -55,21 +55,32 @@ nonisolated final class DiskCacheOperator: CacheOperatorProtocol, @unchecked Sen
                 try fileManager.removeItem(at: destination)
             }
             try fileManager.moveItem(at: sourceURL, to: destination)
+            logger.debug("Saved cache \(key.value) at \(destination)")
         } catch {
             assertionFailure("\(error)")
-            logger.error("Failed to save cache on disk: \(error), key: \(key.value)")
+            logger.error("Failed to save cache \(key.value) on disk: \(error)")
         }
     }
 
     func retrieve(at key: any CacheKeyProtocol) async -> URL? {
         let url = fileURL(for: key)
 
-        guard fileManager.fileExists(atPath: url.path) else { return nil }
+        guard fileManager.fileExists(atPath: url.path) else {
+            logger.debug(
+                "Failed to retrieve cache \(key.value) as it's missing"
+            )
+            return nil
+        }
 
         guard !isExpired(fileURL: url) else {
             try? fileManager.removeItem(at: url)
+            logger.debug(
+                "Failed to retrieve cache \(key.value) as it's already expired"
+            )
             return nil
         }
+
+        logger.debug("Retrieved cache \(key.value) from \(url)")
 
         return url
     }
@@ -88,30 +99,27 @@ private extension DiskCacheOperator {
     func setup() {
         guard !fileManager.fileExists(atPath: cacheDirectory.path) else { return }
 
+        logger.debug("Creating cache directory at \(cacheDirectory)")
         do {
             try fileManager.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
         } catch {
             assertionFailure("\(error)")
-            logger.error("Failed to setup disk for caching: \(error)")
+            logger.error("Failed to create cache directory: \(error)")
         }
     }
 
     func clearExpired() {
         do {
             for fileName in try fileManager.contentsOfDirectory(atPath: cacheDirectory.path) {
-                let filePath = cacheDirectory.appendingPathComponent(fileName).path
-                let attributes = try fileManager.attributesOfItem(atPath: filePath)
+                let fileURL = cacheDirectory.appendingPathComponent(fileName)
+                guard isExpired(fileURL: fileURL) else { continue }
 
-                guard
-                    let creationDate = attributes[.creationDate] as? Date,
-                    Date().timeIntervalSince(creationDate) >= timeToLive
-                else { continue }
-
-                try fileManager.removeItem(atPath: filePath)
+                logger.debug("Clearing expired cache at \(fileURL)")
+                try fileManager.removeItem(atPath: fileURL.path)
             }
         } catch {
             assertionFailure("\(error)")
-            logger.error("Failed to clear expired disk cache: \(error)")
+            logger.error("Failed to clear expired cache: \(error)")
         }
     }
 

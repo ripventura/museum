@@ -8,7 +8,9 @@
 import SwiftUI
 import RealityKit
 import FactoryKit
+import Equatable
 
+@Equatable
 struct AssetDetailView: View {
     let asset: Asset
     let url: URL
@@ -16,6 +18,7 @@ struct AssetDetailView: View {
     @ObservedObject private var immersiveSpaceController = Container.shared.immersiveSpaceController()
 
     @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    @Environment(\.dismissWindow) private var dismissWindow
 
     @State private var hasLoadedModel = false
 
@@ -29,6 +32,7 @@ struct AssetDetailView: View {
                             .scaledToFit()
                             .offset(z: CGFloat(asset.offsetZ ?? 0))
                             .onAppear { hasLoadedModel = true }
+                            .onDisappear { hasLoadedModel = false }
                     } else if let error = $0.error {
                         ContentUnavailableView(
                             "Invalid Model",
@@ -39,23 +43,29 @@ struct AssetDetailView: View {
                 }
             }
         }
-        .ornament(attachmentAnchor: .scene(.top)) {
-            if hasLoadedModel {
-                Text(asset.title)
-                    .font(.title)
-            }
+        .ornament(
+            visibility: hasLoadedModel ? .visible : .hidden,
+            attachmentAnchor: .scene(.top)
+        ) {
+            Text(asset.title)
+                .font(.title)
         }
-        .ornament(attachmentAnchor: .scene(.bottomFront)) {
-            if hasLoadedModel && immersiveSpaceController.phase == .closed {
-                Button("View Immersive") {
-                    openImmersive()
-                }
-            } else {
-                VStack {
-                    ProgressView()
-                    Text("Loading experience...")
-                }
-                .font(.headline)
+        .ornament(
+            visibility: isLoadingExperience ? .visible : .hidden,
+            attachmentAnchor: .scene(.top)
+        ) {
+            VStack {
+                ProgressView()
+                Text("Loading experience...")
+            }
+            .font(.headline)
+        }
+        .ornament(
+            visibility: !isLoadingExperience ? .visible : .hidden,
+            attachmentAnchor: .scene(.bottomFront)
+        ) {
+            Button("View Immersive") {
+                openImmersive()
             }
         }
     }
@@ -64,6 +74,9 @@ struct AssetDetailView: View {
 // MARK: - Private
 
 private extension AssetDetailView {
+    var isLoadingExperience: Bool {
+        !hasLoadedModel || immersiveSpaceController.phase != .closed
+    }
 
     func openImmersive() {
         immersiveSpaceController.phase = .opening
@@ -72,6 +85,7 @@ private extension AssetDetailView {
             switch result {
             case .opened:
                 immersiveSpaceController.phase = .open
+                dismissWindow(id: Constants.volumetricSpaceId)
             case .userCancelled:
                 immersiveSpaceController.phase = .closed
             case .error:

@@ -13,9 +13,9 @@ import Foundation
 
 extension Container {
     @MainActor
-    var assetDisplayViewModel: Factory<AssetDisplayViewModel> {
-        self { @MainActor in AssetDisplayViewModel() }
-            .shared
+    var assetDisplayViewModel: ParameterFactory<Asset, AssetDisplayViewModel> {
+        self { @MainActor in AssetDisplayViewModel(asset: $0) }
+            .scopeOnParameters.shared
     }
 }
 
@@ -32,27 +32,29 @@ protocol AssetDisplayViewModeling: ObservableObject {
 
 final class AssetDisplayViewModel: AssetDisplayViewModeling, ObservableObject {
 
-    @Published private(set) var state: AssetDisplayState = .loading(progress: 0)
-    @Published private(set) var asset: Asset = .warship
+    @Published private(set) var state: AssetDisplayState = .idle
+    @Published private(set) var asset: Asset
     private(set) var isLoading: Bool = false
 
     private let assetProvider: any AssetProviding
     private let logger: any Logging
 
     init(
+        asset: Asset,
         assetProvider: any AssetProviding = Container.shared.assetProviderManager(),
         logger: any Logging = Container.shared.logOperator("AssetDisplayViewModel")
     ) {
+        self.asset = asset
         self.assetProvider = assetProvider
         self.logger = logger
-        setupBindings()
+        logger.debug("init \(asset.rawValue)")
     }
 
+    deinit { logger.debug("deinit \(asset.rawValue)") }
+
     func startLoading() {
-        guard !isLoading else {
-            logger.warning("startLoading() called while already loading — ignoring")
-            return
-        }
+        guard !isLoading else { return }
+        logger.info("Started loading asset")
         isLoading = true
         state = .loading(progress: 0)
         Task.detached { [weak self] in
@@ -70,8 +72,6 @@ final class AssetDisplayViewModel: AssetDisplayViewModeling, ObservableObject {
 // MARK: - Private
 
 private extension AssetDisplayViewModel {
-
-    func setupBindings() {}
 
     func performLoad() async {
         let strategy = RetryStrategy(

@@ -14,9 +14,9 @@ import Combine
 
 extension Container {
     @MainActor
-    var immersiveTourViewModel: Factory<ImmersiveTourViewModel> {
-        self { @MainActor in ImmersiveTourViewModel() }
-            .shared
+    var immersiveTourViewModel: ParameterFactory<Asset, ImmersiveTourViewModel> {
+        self { @MainActor in ImmersiveTourViewModel(asset: $0) }
+            .scopeOnParameters.shared
     }
 }
 
@@ -27,7 +27,6 @@ protocol ImmersiveTourViewModeling: ObservableObject {
     var currentSpot: Asset.TourSpot? { get }
     var canGoNext: Bool { get }
     var canGoPrevious: Bool { get }
-    func configure(for asset: Asset)
     func goToNext()
     func goToPrevious()
     func entityOrientation(for spot: Asset.TourSpot) -> simd_quatf
@@ -39,7 +38,8 @@ final class ImmersiveTourViewModel: ImmersiveTourViewModeling, ObservableObject 
 
     @Published private(set) var currentSpotIndex: Int = 0
 
-    private var asset: Asset = .warship
+    let asset: Asset
+    private let logger: any Logging
 
     var currentSpot: Asset.TourSpot? {
         let spots = asset.tourSpots
@@ -55,22 +55,26 @@ final class ImmersiveTourViewModel: ImmersiveTourViewModeling, ObservableObject 
         currentSpotIndex > 0
     }
 
-    init() {
-        setupBindings()
+    init(
+        asset: Asset,
+        logger: any Logging = Container.shared.logOperator("ImmersiveTourViewModel")
+    ) {
+        self.asset = asset
+        self.logger = logger
+        logger.debug("init \(asset.rawValue)")
     }
 
-    func configure(for asset: Asset) {
-        self.asset = asset
-        currentSpotIndex = 0
-    }
+    deinit { logger.debug("deinit \(asset.rawValue)") }
 
     func goToNext() {
         guard canGoNext else { return }
+        logger.info("Moving to next tour spot")
         currentSpotIndex = (currentSpotIndex + 1) % asset.tourSpots.count
     }
 
     func goToPrevious() {
         guard canGoPrevious else { return }
+        logger.info("Moving to previous tour spot")
         currentSpotIndex -= 1
     }
 
@@ -79,12 +83,11 @@ final class ImmersiveTourViewModel: ImmersiveTourViewModeling, ObservableObject 
         let qx = simd_quatf(angle: euler.x, axis: SIMD3<Float>(1, 0, 0))
         let qy = simd_quatf(angle: euler.y, axis: SIMD3<Float>(0, 1, 0))
         let qz = simd_quatf(angle: euler.z, axis: SIMD3<Float>(0, 0, 1))
-        return qy * qx * qz
+
+        let orientation = qy * qx * qz
+        logger.debug(
+            "Orientation for spot \(spot.title)[\(spot.entityOrientation)]: \(orientation)"
+        )
+        return orientation
     }
-}
-
-// MARK: - Private
-
-private extension ImmersiveTourViewModel {
-    func setupBindings() {}
 }

@@ -6,18 +6,26 @@
 //
 
 import SwiftUI
+import Equatable
 
+@Equatable
 struct AssetLoadingView: View {
     let progress: Float
 
     var body: some View {
-        VStack(spacing: 16) {
-            ProgressView(value: Double(progress))
-                .progressViewStyle(.linear)
-                .frame(width: 200)
-            Text("Downloading asset… \(Int(progress * 100))%")
-                .foregroundStyle(.secondary)
+        VStack(spacing: 40) {
+            Text("Downloading Asset")
+                .font(.title)
+
+            VStack(spacing: 10) {
+                ProgressView(value: Double(progress))
+                    .progressViewStyle(.linear)
+                    .frame(width: 200)
+                Text("\(Int(progress * 100))%")
+            }
         }
         .padding()
+        .frame(minWidth: 300, minHeight: 300)
+        .glassBackgroundEffect()
     }
 }

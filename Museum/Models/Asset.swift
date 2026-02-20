@@ -7,7 +7,7 @@
 
 import simd
 
-nonisolated enum Asset: String, CaseIterable, Sendable, CacheKeyProtocol {
+nonisolated enum Asset: String, CaseIterable, Sendable, Equatable, CacheKeyProtocol {
     case warship = "KM1PUvbAai5kXm8"
 
     var value: String { rawValue }

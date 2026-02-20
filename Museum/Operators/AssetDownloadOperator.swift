@@ -56,23 +56,41 @@ nonisolated protocol AssetDownloading: Sendable {
 nonisolated final class AssetDownloadOperator: AssetDownloading, @unchecked Sendable {
 
     private let session: any URLSessionDownloading
+    private let logger: any Logging
     private let fileManager: FileManager
 
-    init(session: any URLSessionDownloading = URLSessionDownloader(), fileManager: FileManager = .default) {
+    init(
+        session: any URLSessionDownloading = URLSessionDownloader(),
+        logger: any Logging = Container.shared.logOperator("AssetDownloadOperator"),
+        fileManager: FileManager = .default
+    ) {
         self.session = session
+        self.logger = logger
         self.fileManager = fileManager
     }
 
     func download(from url: URL) -> AsyncThrowingStream<AssetDownloadEvent, Error> {
-        AsyncThrowingStream { continuation in
-            let task = Task {
+        logger.debug("Downloading asset from \(url)")
+        return AsyncThrowingStream { continuation in
+            let task = Task { [weak self] in
+                guard let self else {
+                    return continuation.finish(throwing: CancellationError())
+                }
                 do {
-                    let fileURL = try await performDownload(from: url, continuation: continuation)
+                    let fileURL = try await self.performDownload(
+                        from: url,
+                        continuation: continuation
+                    )
+                    logger.debug("Asset downloaded to \(fileURL)")
                     continuation.yield(.completed(fileURL))
                     continuation.finish()
                 } catch is CancellationError {
+                    logger.debug("User cancelled asset download")
                     continuation.finish(throwing: CancellationError())
                 } catch {
+                    logger.error(
+                        "Failed downloading asset: \(error.localizedDescription)"
+                    )
                     continuation.finish(throwing: error)
                 }
             }
@@ -123,6 +141,8 @@ private extension AssetDownloadOperator {
         let stableURL = fileManager.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
             .appendingPathExtension(originalURL.pathExtension)
+
+        logger.debug("Moving downloaded file from \(tempURL) to \(stableURL)")
 
         do {
             try fileManager.moveItem(at: tempURL, to: stableURL)

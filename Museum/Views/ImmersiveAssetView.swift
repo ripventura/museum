@@ -8,20 +8,29 @@
 import SwiftUI
 import RealityKit
 import FactoryKit
+import Equatable
 
+@Equatable
 struct ImmersiveAssetView: View {
-    @ObservedObject private var viewModel = Container.shared.assetDisplayViewModel()
-    @ObservedObject private var tourViewModel = Container.shared.immersiveTourViewModel()
+    let asset: Asset
+
+    @ObservedObject private var viewModel: AssetDisplayViewModel
+    @ObservedObject private var tourViewModel: ImmersiveTourViewModel
     @ObservedObject private var immersiveSpaceController = Container.shared.immersiveSpaceController()
 
+    init(asset: Asset) {
+        self.asset = asset
+        self.viewModel = Container.shared.assetDisplayViewModel(asset)
+        self.tourViewModel = Container.shared.immersiveTourViewModel(asset)
+    }
+
     @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Group {
             if case .loaded(let url) = viewModel.state {
                 RealityView { content, attachments in
-                    tourViewModel.configure(for: viewModel.asset)
-
                     do {
                         let entity = try await ModelEntity(contentsOf: url)
                         entity.name = tourAssetEntityName
@@ -31,23 +40,23 @@ struct ImmersiveAssetView: View {
                         }
 
                         content.add(entity)
+                        content.add(makeSceneLighting())
+
+                        if let exitButton = attachments.entity(for: exitButtonAttachmentId) {
+                            let headAnchor = AnchorEntity(.head)
+                            exitButton.position = SIMD3<Float>(0, -0.45, -1)
+                            headAnchor.addChild(exitButton)
+                            content.add(headAnchor)
+                        }
+
+                        if let tourPanel = attachments.entity(for: tourPanelAttachmentId) {
+                            let headAnchor = AnchorEntity(.head)
+                            tourPanel.position = SIMD3<Float>(-0.55, 0, -1)
+                            headAnchor.addChild(tourPanel)
+                            content.add(headAnchor)
+                        }
                     } catch {
-                        // Entity load failure is non-fatal;
-                        // the volumetric window remains available for retry
-                    }
-
-                    if let exitButton = attachments.entity(for: exitButtonAttachmentId) {
-                        let headAnchor = AnchorEntity(.head)
-                        exitButton.position = SIMD3<Float>(0, -0.45, -1)
-                        headAnchor.addChild(exitButton)
-                        content.add(headAnchor)
-                    }
-
-                    if let tourPanel = attachments.entity(for: tourPanelAttachmentId) {
-                        let headAnchor = AnchorEntity(.head)
-                        tourPanel.position = SIMD3<Float>(-0.55, 0, -1)
-                        headAnchor.addChild(tourPanel)
-                        content.add(headAnchor)
+                        dismissImmersive()
                     }
                 } update: { content, attachments in
                     guard
@@ -69,9 +78,6 @@ struct ImmersiveAssetView: View {
                 }
             }
         }
-        .onDisappear {
-            immersiveSpaceController.phase = .closed
-        }
     }
 }
 
@@ -86,7 +92,31 @@ private extension ImmersiveAssetView {
     func dismissImmersive() {
         Task {
             await dismissImmersiveSpace()
+            immersiveSpaceController.phase = .closed
+            openWindow(id: Constants.volumetricSpaceId)
         }
+    }
+
+    func makeSceneLighting() -> Entity {
+        let lightAnchor = Entity()
+
+        let keyLight = Entity()
+        keyLight.components.set(DirectionalLightComponent(
+            color: .white,
+            intensity: 2500
+        ))
+        keyLight.orientation = simd_quatf(angle: -.pi / 3, axis: [1, 0, 0])
+        lightAnchor.addChild(keyLight)
+
+        let fillLight = Entity()
+        fillLight.components.set(PointLightComponent(
+            color: .white,
+            intensity: 3000
+        ))
+        fillLight.position = SIMD3<Float>(0, 1.5, 1)
+        lightAnchor.addChild(fillLight)
+
+        return lightAnchor
     }
 
     func applySpot(_ spot: Asset.TourSpot, to entity: Entity, animated: Bool) {

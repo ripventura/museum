@@ -9,11 +9,23 @@ import SwiftUI
 import FactoryKit
 
 struct ContentView: View {
-    @ObservedObject private var viewModel = Container.shared.assetDisplayViewModel()
+    let asset: Asset
+
+    @ObservedObject private var viewModel: AssetDisplayViewModel
+
+    init(asset: Asset) {
+        self.asset = asset
+        self.viewModel = Container.shared.assetDisplayViewModel(asset)
+    }
 
     var body: some View {
         Group {
             switch viewModel.state {
+            case .idle:
+                ProgressView()
+                    .onAppear {
+                        viewModel.startLoading()
+                    }
             case .loading(let progress):
                 AssetLoadingView(progress: progress)
             case .loaded(let url):
@@ -21,9 +33,6 @@ struct ContentView: View {
             case .failed:
                 failureContent
             }
-        }
-        .onAppear {
-            viewModel.startLoading()
         }
     }
 }
@@ -46,5 +55,5 @@ private extension ContentView {
 }
 
 #Preview(windowStyle: .automatic) {
-    ContentView()
+    ContentView(asset: .warship)
 }

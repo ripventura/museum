@@ -13,6 +13,9 @@ struct MuseumApp: App {
     @ObservedObject private var viewModel = Container.shared.museumAppViewModel()
     @ObservedObject private var immersiveSpaceController = Container.shared.immersiveSpaceController()
     private let isRunningTests: Bool
+    // On a real app the user would first select which asset to be
+    // interacted with
+    private let currentAsset = Asset.warship
 
     init() {
         isRunningTests = NSClassFromString("XCTestProbe") != nil
@@ -23,21 +26,21 @@ struct MuseumApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: Constants.volumetricSpaceId) {
             switch viewModel.loadingState {
             case .loading:
                 loadingContent
             case .loaded:
-                ContentView()
+                ContentView(asset: currentAsset)
             case .failed:
                 failureContent
             }
         }
         .windowStyle(.volumetric)
-        .defaultSize(width: 1, height: 1, depth: 0.5, in: .meters)
+        .defaultSize(width: 1, height: 1, depth: 5, in: .meters)
 
         ImmersiveSpace(id: Constants.immersiveSpaceId) {
-            ImmersiveAssetView()
+            ImmersiveAssetView(asset: currentAsset)
         }
         .immersionStyle(selection: .constant(.full), in: .full)
     }

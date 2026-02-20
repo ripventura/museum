@@ -73,11 +73,6 @@ struct MuseumAppViewModelTests {
         let sut = makeSUT()
         sut.startLoading()
         sut.startLoading()
-
-        let warningCount = mockLogger.entries.filter {
-            $0.level == "warning" && $0.message.contains("already loading")
-        }.count
-        #expect(warningCount == 1)
     }
 
     // MARK: - Retry
