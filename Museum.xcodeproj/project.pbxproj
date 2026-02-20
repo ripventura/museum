@@ -10,6 +10,7 @@
 		18234CCB2F4645DB00C0A12D /* FactoryKit in Frameworks */ = {isa = PBXBuildFile; productRef = 18234CCA2F4645DB00C0A12D /* FactoryKit */; };
 		18234CCD2F4645DB00C0A12D /* FactoryTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 18234CCC2F4645DB00C0A12D /* FactoryTesting */; };
 		189E39012F463C380013FCC3 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 189E39002F463C380013FCC3 /* RealityKitContent */; };
+		18F081EE2F48B494007F0DB8 /* Equatable in Frameworks */ = {isa = PBXBuildFile; productRef = 18F081ED2F48B494007F0DB8 /* Equatable */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +61,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				18F081EE2F48B494007F0DB8 /* Equatable in Frameworks */,
 				18234CCB2F4645DB00C0A12D /* FactoryKit in Frameworks */,
 				189E39012F463C380013FCC3 /* RealityKitContent in Frameworks */,
 			);
@@ -126,6 +128,7 @@
 			packageProductDependencies = (
 				189E39002F463C380013FCC3 /* RealityKitContent */,
 				18234CCA2F4645DB00C0A12D /* FactoryKit */,
+				18F081ED2F48B494007F0DB8 /* Equatable */,
 			);
 			productName = Museum;
 			productReference = 189E38FB2F463C380013FCC3 /* Museum.app */;
@@ -185,6 +188,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				18234CC92F4645DB00C0A12D /* XCRemoteSwiftPackageReference "Factory" */,
+				18F081EC2F48B494007F0DB8 /* XCRemoteSwiftPackageReference "equatable" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 189E38FC2F463C380013FCC3 /* Products */;
@@ -506,6 +510,14 @@
 				minimumVersion = 2.5.3;
 			};
 		};
+		18F081EC2F48B494007F0DB8 /* XCRemoteSwiftPackageReference "equatable" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ordo-one/equatable";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -522,6 +534,11 @@
 		189E39002F463C380013FCC3 /* RealityKitContent */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = RealityKitContent;
+		};
+		18F081ED2F48B494007F0DB8 /* Equatable */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 18F081EC2F48B494007F0DB8 /* XCRemoteSwiftPackageReference "equatable" */;
+			productName = Equatable;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

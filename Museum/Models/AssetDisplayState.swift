@@ -8,6 +8,7 @@
 import Foundation
 
 nonisolated enum AssetDisplayState: Sendable {
+    case idle
     case loading(progress: Float)
     case loaded(url: URL)
     case failed(Error)

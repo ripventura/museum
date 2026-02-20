@@ -8,7 +8,9 @@
 import SwiftUI
 import RealityKit
 import FactoryKit
+import Equatable
 
+@Equatable
 struct AssetDetailView: View {
     let asset: Asset
     let url: URL
@@ -29,6 +31,7 @@ struct AssetDetailView: View {
                             .scaledToFit()
                             .offset(z: CGFloat(asset.offsetZ ?? 0))
                             .onAppear { hasLoadedModel = true }
+                            .onDisappear { hasLoadedModel = false }
                     } else if let error = $0.error {
                         ContentUnavailableView(
                             "Invalid Model",
@@ -45,17 +48,20 @@ struct AssetDetailView: View {
                     .font(.title)
             }
         }
-        .ornament(attachmentAnchor: .scene(.bottomFront)) {
-            if hasLoadedModel && immersiveSpaceController.phase == .closed {
-                Button("View Immersive") {
-                    openImmersive()
-                }
-            } else {
+        .ornament(attachmentAnchor: .scene(.top)) {
+            if isLoadingExperience {
                 VStack {
                     ProgressView()
                     Text("Loading experience...")
                 }
                 .font(.headline)
+            }
+        }
+        .ornament(attachmentAnchor: .scene(.bottomFront)) {
+            if !isLoadingExperience {
+                Button("View Immersive") {
+                    openImmersive()
+                }
             }
         }
     }
@@ -64,6 +70,9 @@ struct AssetDetailView: View {
 // MARK: - Private
 
 private extension AssetDetailView {
+    var isLoadingExperience: Bool {
+        !hasLoadedModel || immersiveSpaceController.phase != .closed
+    }
 
     func openImmersive() {
         immersiveSpaceController.phase = .opening
