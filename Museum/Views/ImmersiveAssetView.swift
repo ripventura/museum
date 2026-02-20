@@ -35,6 +35,7 @@ struct ImmersiveAssetView: View {
                         // Entity load failure is non-fatal;
                         // the volumetric window remains available for retry
                     }
+                        content.add(makeSceneLighting())
 
                     if let exitButton = attachments.entity(for: exitButtonAttachmentId) {
                         let headAnchor = AnchorEntity(.head)
@@ -87,6 +88,28 @@ private extension ImmersiveAssetView {
         Task {
             await dismissImmersiveSpace()
         }
+    }
+
+    func makeSceneLighting() -> Entity {
+        let lightAnchor = Entity()
+
+        let keyLight = Entity()
+        keyLight.components.set(DirectionalLightComponent(
+            color: .white,
+            intensity: 2500
+        ))
+        keyLight.orientation = simd_quatf(angle: -.pi / 3, axis: [1, 0, 0])
+        lightAnchor.addChild(keyLight)
+
+        let fillLight = Entity()
+        fillLight.components.set(PointLightComponent(
+            color: .white,
+            intensity: 3000
+        ))
+        fillLight.position = SIMD3<Float>(0, 1.5, 1)
+        lightAnchor.addChild(fillLight)
+
+        return lightAnchor
     }
 
     func applySpot(_ spot: Asset.TourSpot, to entity: Entity, animated: Bool) {
