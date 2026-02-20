@@ -3,24 +3,7 @@
 A SwiftUI visionOS app that serves as a portal for museum visitors to interact and immerse themselves in 3D assets and environments.
 
 ## Project Structure
-
-```
-Museum/
-├── Museum/                          # App source code
-│   ├── MuseumApp.swift              # @main entry point (WindowGroup scene)
-│   ├── ContentView.swift            # Main UI view
-│   ├── Info.plist                   # Supports multiple scenes
-│   └── Assets.xcassets/             # visionOS solid image stack icon
-├── MuseumTests/                     # Swift Testing framework tests
-│   └── MuseumTests.swift
-├── Packages/
-│   └── RealityKitContent/           # Local SPM package for 3D assets
-│       ├── Package.swift            # Swift 6.2, visionOS 26+
-│       └── Sources/RealityKitContent/
-│           ├── RealityKitContent.swift          # Bundle.module export
-│           └── RealityKitContent.rkassets/      # USDA scenes & materials
-└── Museum.xcodeproj/
-```
+Refer to the README.md file for project structure.
 
 ## Build & Run
 
@@ -36,7 +19,7 @@ The app uses a light MVVM architecture with clearly defined layers (top to botto
 
 ### 1. Views
 - SwiftUI views with business logic extracted into view models
-- Never cascade multiple `.sheet`, `.alert` or similar modifiers — use a single declaration controlled by a Controller
+- Never cascade multiple `.sheet` or `.alert` modifiers — use a single declaration controlled by a Controller
 - Prefer alternatives to event subscribing modifiers (`.onAppear`, `.task`, `.onChange`) — only use when strictly necessary
 - Should always declare the view models as `@ObservedObject` and leave the lifecycle control to the scope of the Factory registration, such as `.singleton`, `.shared`, `.unique`
 
