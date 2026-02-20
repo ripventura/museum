@@ -21,9 +21,9 @@ struct AssetTests {
         #expect(Asset.warship.fileExtension == "usdz")
     }
 
-    @Test("Warship title is Warship")
+    @Test("Warship title is USS Gato (SS-212)")
     func warshipTitle() {
-        #expect(Asset.warship.title == "Warship")
+        #expect(Asset.warship.title == "USS Gato (SS-212)")
     }
 
     @Test("Warship offsetZ is 400")
@@ -31,13 +31,12 @@ struct AssetTests {
         #expect(Asset.warship.offsetZ == 400)
     }
 
-    @Test("Warship position is (-10, -5, -15)")
-    func warshipPosition() {
-        #expect(Asset.warship.position == SIMD3<Float>(-10, -5, -15))
-    }
-
-    @Test("Warship orientation is (0, pi/2, 0)")
-    func warshipOrientation() {
-        #expect(Asset.warship.orientation == SIMD3<Float>(0, .pi / 2, 0))
+    @Test("Warship has tour spots")
+    func warshipTourSpots() {
+        let spots = Asset.warship.tourSpots
+        #expect(spots.count == 5)
+        #expect(spots[0].title == "Forward Torpedo Room")
+        #expect(spots[0].entityPosition == SIMD3<Float>(-10, -5, -10))
+        #expect(spots[0].entityOrientation == SIMD3<Float>(0, .pi, 0))
     }
 }
