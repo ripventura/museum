@@ -55,7 +55,11 @@ nonisolated final class AssetProviderManager: AssetProviding, @unchecked Sendabl
         self.diskCache = diskCache
         self.downloader = downloader
         self.logger = logger
+
+        logger.debug("init")
     }
+
+    deinit { logger.debug("deinit") }
 
     func provide(
         _ asset: Asset,
