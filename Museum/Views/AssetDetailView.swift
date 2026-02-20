@@ -43,26 +43,29 @@ struct AssetDetailView: View {
                 }
             }
         }
-        .ornament(attachmentAnchor: .scene(.top)) {
-            if hasLoadedModel {
-                Text(asset.title)
-                    .font(.title)
-            }
+        .ornament(
+            visibility: hasLoadedModel ? .visible : .hidden,
+            attachmentAnchor: .scene(.top)
+        ) {
+            Text(asset.title)
+                .font(.title)
         }
-        .ornament(attachmentAnchor: .scene(.top)) {
-            if isLoadingExperience {
-                VStack {
-                    ProgressView()
-                    Text("Loading experience...")
-                }
-                .font(.headline)
+        .ornament(
+            visibility: isLoadingExperience ? .visible : .hidden,
+            attachmentAnchor: .scene(.top)
+        ) {
+            VStack {
+                ProgressView()
+                Text("Loading experience...")
             }
+            .font(.headline)
         }
-        .ornament(attachmentAnchor: .scene(.bottomFront)) {
-            if !isLoadingExperience {
-                Button("View Immersive") {
-                    openImmersive()
-                }
+        .ornament(
+            visibility: !isLoadingExperience ? .visible : .hidden,
+            attachmentAnchor: .scene(.bottomFront)
+        ) {
+            Button("View Immersive") {
+                openImmersive()
             }
         }
     }
