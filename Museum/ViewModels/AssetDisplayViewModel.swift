@@ -23,6 +23,7 @@ extension Container {
 
 protocol AssetDisplayViewModeling: ObservableObject {
     var state: AssetDisplayState { get }
+    var asset: Asset { get }
     func startLoading()
     func retry()
 }
@@ -32,6 +33,7 @@ protocol AssetDisplayViewModeling: ObservableObject {
 final class AssetDisplayViewModel: AssetDisplayViewModeling, ObservableObject {
 
     @Published private(set) var state: AssetDisplayState = .loading(progress: 0)
+    @Published private(set) var asset: Asset = .warship
     private(set) var isLoading: Bool = false
 
     private let assetProvider: any AssetProviding
@@ -80,7 +82,7 @@ private extension AssetDisplayViewModel {
 
         do {
             let url = try await assetProvider.provide(
-                .warship,
+                asset,
                 strategy: strategy
             ) { [weak self] progress in
                 Task { @MainActor [weak self] in

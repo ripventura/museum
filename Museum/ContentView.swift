@@ -17,7 +17,7 @@ struct ContentView: View {
             case .loading(let progress):
                 AssetLoadingView(progress: progress)
             case .loaded(let url):
-                AssetDetailView(url: url)
+                AssetDetailView(asset: viewModel.asset, url: url)
             case .failed:
                 failureContent
             }

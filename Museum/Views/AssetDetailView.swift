@@ -10,6 +10,7 @@ import RealityKit
 import FactoryKit
 
 struct AssetDetailView: View {
+    let asset: Asset
     let url: URL
 
     @ObservedObject private var immersiveSpaceController = Container.shared.immersiveSpaceController()
@@ -26,7 +27,7 @@ struct AssetDetailView: View {
                         model
                             .resizable()
                             .scaledToFit()
-                            .offset(z: 400)
+                            .offset(z: CGFloat(asset.offsetZ ?? 0))
                             .onAppear { hasLoadedModel = true }
                     } else if let error = $0.error {
                         ContentUnavailableView(
@@ -36,6 +37,12 @@ struct AssetDetailView: View {
                         )
                     }
                 }
+            }
+        }
+        .ornament(attachmentAnchor: .scene(.top)) {
+            if hasLoadedModel {
+                Text(asset.title)
+                    .font(.title)
             }
         }
         .ornament(attachmentAnchor: .scene(.bottomFront)) {
